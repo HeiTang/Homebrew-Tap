@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   update:
-    runs-on: macos-15
+    runs-on: macos-15-intel
     timeout-minutes: 15
     permissions:
       contents: write
