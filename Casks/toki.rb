@@ -1,6 +1,6 @@
 cask "toki" do
-  version "1.5.3"
-  sha256 "bb87f40aecaa4cb4c7d92d057e3c4fba74fd705e92b05d90f1e7e87e4f35a46f"
+  version "1.5.2"
+  sha256 "6c3c24b5df72ffb179e414f2a737fb893d94a0e230c9d72e09fec4d2194186f8"
 
   url "https://github.com/HeiTang/Toki/releases/download/v#{version}/Toki-macos-arm64.dmg"
   name "Toki"
