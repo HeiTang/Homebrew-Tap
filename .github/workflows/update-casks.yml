@@ -1,0 +1,54 @@
+name: Update Casks
+
+on:
+  schedule:
+    - cron: '17 */6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: update-casks
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: macos-15
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      pull-requests: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      HOMEBREW_NO_AUTO_UPDATE: '1'
+      HOMEBREW_NO_ANALYTICS: '1'
+    steps:
+      - name: Check out main
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: main
+          persist-credentials: false
+      - name: Test updater
+        run: ruby tests/update-casks-test.rb
+      - name: Check releases and verify downloads
+        id: releases
+        shell: bash
+        run: |
+          set -euo pipefail
+          ruby scripts/update-casks.rb | tee "$RUNNER_TEMP/cask-updates.md"
+          if ! git diff --quiet -- Casks; then
+            brew style Casks/*.rb
+            git diff --check
+            echo 'changed=true' >> "$GITHUB_OUTPUT"
+          fi
+      - name: Create or update pull request
+        if: steps.releases.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@22a9089034f40e5a961c8808d113e2c98fb63676 # v7
+        with:
+          add-paths: Casks/*.rb
+          base: main
+          branch: feature/update-casks
+          commit-message: 'chore(cask): update app releases'
+          title: 'chore(cask): update app releases'
+          body-path: ${{ runner.temp }}/cask-updates.md
